@@ -1,8 +1,6 @@
 name: CI Build, test and cover
 
 on:
-  pull_request:
-    branches: [ main ]
   workflow_call:
     inputs:
       dotnet_version:
