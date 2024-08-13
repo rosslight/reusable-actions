@@ -1,0 +1,125 @@
+name: CI Build, test and cover
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_call:
+    inputs:
+      dotnet_version:
+        required: true
+        type: string
+      test_projects:
+        required: false
+        type: string
+        default: './test/**/*.csproj'
+      report_results:
+        required: false
+        type: boolean
+        default: true
+      cache_reports:
+        required: false
+        type: boolean
+        default: true
+      reports_path:
+        required: false
+        type: string
+        default: './test-reports'
+    secrets:
+      READ_PACKAGES_USERNAME:
+        required: false
+      READ_PACKAGES_TOKEN:
+        required: false
+    outputs:
+      cache_key:
+        description: "The key of the cache storing the reports"
+        value: ${{ jobs.build_test_cover.outputs.cache_key }}
+
+jobs:
+  build_test_cover:
+    runs-on: ubuntu-latest
+    name: CI Build
+    outputs:
+      cache_key : ${{ steps.set_key.outputs.cache_key }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet and build solution
+        uses: ./.github/actions/dotnet-build
+        with:
+          dotnet_version: ${{ inputs.dotnet_version }}
+          package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
+          package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
+
+      # Test all projects inside the ./test directory.
+      # Coverage goes to ./results/uuid/...
+      # Result logs go to ./results/test/PROJECT_NAME/
+      - name: Test
+        run: |
+          for d in ${{ inputs.test_projects }} ; do \
+            dotnet test "$d" --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./results --logger "trx;logfilename=${d%.*}.trx"; \
+          done
+
+      - name: Move reports
+        if: always()        # run this step even if previous step failed
+        run: |
+          mkdir ${{ inputs.reports_path }}
+          mv ./results/test/**/*.trx ./test-reports
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always() && inputs.report_results
+        with:
+          name: Tests
+          path: ${{ inputs.reports_path }}/*.trx
+          reporter: dotnet-trx
+          fail-on-error: true
+
+      - name: Combine Coverage Reports
+        run: |
+          export PATH="$PATH:/root/.dotnet/tools"
+          dotnet tool install --global dotnet-coverage
+          dotnet coverage merge ./results/**/*.xml --output ${{ inputs.reports_path }}/coverage.xml --output-format cobertura
+
+      - name: Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        if: inputs.report_results
+        with:
+          filename: ${{ inputs.reports_path }}/coverage.xml
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: '5 5'
+
+        # Add the coverage to the PR
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
+
+      - name: Move everything in correct folder
+        run: |
+          mv code-coverage-results.md ${{ inputs.reports_path }}
+
+      - name: Cache Code reports
+        uses: actions/cache@v4
+        if: inputs.cache_reports
+        with:
+          path: ${{ inputs.reports_path }}
+          key: test-reports-${{ github.sha }}
+
+
+      - name: Set cache_key
+        id: set_key
+        run: |
+          echo "cache_key=release-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Cache releases
+        uses: actions/cache@v4
+        with:
+          path: ${{ inputs.reports_path }}
+          key: ${{ steps.set_key.outputs.cache_key }}

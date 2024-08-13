@@ -1,0 +1,70 @@
+on:
+  workflow_call:
+    inputs:
+      dotnet_version:
+        required: true
+        type: string
+      project_path:
+        required: true
+        type: string
+      release_version:
+        required: true
+        type: string
+      self_contained:
+        required: false
+        type: boolean
+        default: true
+      single_file:
+        required: false
+        type: boolean
+        default: true
+      publish_path:
+        required: false
+        type: string
+        default: './publish-exe'
+    secrets:
+      READ_PACKAGES_USERNAME:
+        required: false
+      READ_PACKAGES_TOKEN:
+        required: false
+    outputs:
+      cache_key:
+        description: "The key of the cache storing the published files"
+        value: ${{ jobs.publish.outputs.cache_key }}
+
+jobs:
+  publish:
+    name: Publish win-x64
+    runs-on: ubuntu-latest
+    outputs:
+      cache_key : ${{ steps.set_key.outputs.cache_key }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet and build solution
+        uses: ./.github/actions/dotnet-build
+        with:
+          dotnet_version: ${{ inputs.dotnet_version }}
+          package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
+          package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
+
+      - name: Publish and zip
+        run: |
+          dotnet publish -c Release -r win-x64 ${{ inputs.project_path }} \
+              -o ${{ inputs.publish_path }}/WinX64 \
+              --self-contained ${{ inputs.self_contained }} \
+              -p:PublishSingleFile=${{ inputs.single_file }} \
+              /p:EnableWindowsTargeting=true \
+              /p:Version=${{ inputs.release_version }}
+          cd ${{ inputs.publish_path }}
+          zip -r WinX64.zip WinX64
+
+      - name: Set cache_key
+        id: set_key
+        run: |
+          echo "cache_key=release-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Cache releases
+        uses: actions/cache@v4
+        with:
+          path: ${{ inputs.publish_path }}
+          key: ${{ steps.set_key.outputs.cache_key }}

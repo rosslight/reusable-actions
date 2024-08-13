@@ -1,0 +1,44 @@
+name: Setup dotnet and build solution
+description: Specific steps to build for Windows
+inputs:
+  dotnet_version:
+    description: The dotnet version to be used
+    required: true
+  enable_win_target:
+    description: Sets 'EnableWindowsTargeting' during the dotnet build process
+    required: false
+    default: 'false'
+  package_username:
+    description: The username of the nuget package source 'rosslight'
+    required: false
+    default: ''
+  package_password:
+    description: The password of the nuget package source 'rosslight'
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet_version }}
+
+    # See https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net#caching-dependencies
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: ${{ runner.os }}-nuget
+
+    - name: Set up 'rosslight' nuget source
+      if: inputs.package_username != '' && inputs.package_password != ''
+      run: |
+        dotnet nuget add source --name rosslight --username ${{ inputs.package_username }} --password ${{ inputs.package_password }} --store-password-in-clear-text "https://nuget.pkg.github.com/rosslight//index.json"
+      shell: pwsh
+
+    - name: Build
+      run: dotnet build --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
+      shell: pwsh
