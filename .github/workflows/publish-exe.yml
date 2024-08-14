@@ -40,12 +40,8 @@ jobs:
       cache_key : ${{ steps.set_key.outputs.cache_key }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: rosslight/reusable-actions
-
       - name: Setup dotnet and build solution
-        uses: ./.github/actions/dotnet-build
+        uses: rosslight/reusable-actions/dotnet-build@main
         with:
           dotnet_version: ${{ inputs.dotnet_version }}
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
