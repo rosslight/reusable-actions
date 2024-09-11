@@ -22,6 +22,10 @@ on:
         required: false
         type: string
         default: './test-reports'
+      fail_below_coverage:
+        required: false
+        type: boolean
+        default: true
     secrets:
       READ_PACKAGES_USERNAME:
         required: false
@@ -84,40 +88,35 @@ jobs:
         with:
           filename: ${{ inputs.reports_path }}/coverage.xml
           badge: true
-          fail_below_min: true
+          fail_below_min:  ${{ inputs.fail_below_coverage }}
           format: markdown
           hide_branch_rate: false
           hide_complexity: true
           indicators: true
           output: both
-          thresholds: '5 5'
+          thresholds: '60 80'
 
         # Add the coverage to the PR
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && inputs.report_results
         with:
           recreate: true
           path: code-coverage-results.md
 
       - name: Move everything in correct folder
+        if: inputs.cache_reports
         run: |
           mv code-coverage-results.md ${{ inputs.reports_path }}
 
-      - name: Cache Code reports
-        uses: actions/cache@v4
-        if: inputs.cache_reports
-        with:
-          path: ${{ inputs.reports_path }}
-          key: test-reports-${{ github.sha }}
-
-
       - name: Set cache_key
+        if: inputs.cache_reports
         id: set_key
         run: |
           echo "cache_key=release-${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Cache releases
+        if: inputs.cache_reports
         uses: actions/cache@v4
         with:
           path: ${{ inputs.reports_path }}
