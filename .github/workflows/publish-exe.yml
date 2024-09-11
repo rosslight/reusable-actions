@@ -18,6 +18,10 @@ on:
         required: false
         type: boolean
         default: true
+      file_name:
+        required: false
+        type: string
+        default: 'WinX64'
       publish_path:
         required: false
         type: string
@@ -56,7 +60,7 @@ jobs:
               /p:EnableWindowsTargeting=true \
               /p:Version=${{ inputs.release_version }}
           cd ${{ inputs.publish_path }}
-          zip -r WinX64.zip WinX64
+          zip -r ${{ inputs.file_name }}.zip WinX64 && rm -r WinX64
 
       - name: Set cache_key
         id: set_key
