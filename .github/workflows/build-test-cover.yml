@@ -113,11 +113,11 @@ jobs:
         if: inputs.cache_reports
         id: set_key
         run: |
-          echo "cache_key=release-${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "cache_key=build-reports-${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Cache releases
         if: inputs.cache_reports
-        uses: actions/cache@v4
+        uses: actions/cache/save@v4
         with:
           path: ${{ inputs.reports_path }}
           key: ${{ steps.set_key.outputs.cache_key }}

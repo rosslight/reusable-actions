@@ -65,10 +65,10 @@ jobs:
       - name: Set cache_key
         id: set_key
         run: |
-          echo "cache_key=release-${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "cache_key=publish-exe-${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Cache releases
-        uses: actions/cache@v4
+        uses: actions/cache/save@v4
         with:
           path: ${{ inputs.publish_path }}
           key: ${{ steps.set_key.outputs.cache_key }}
