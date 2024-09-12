@@ -1,0 +1,128 @@
+on:
+  workflow_call:
+    inputs:
+      dotnet_version:
+        required: true
+        type: string
+      installer_project_path:
+        required: true
+        type: string
+      release_version:
+        required: true
+        type: string
+      msix_bundle_platforms:
+        required: true
+        type: string
+      run_powershell_command:
+        required: false
+        type: string
+      sign_with_trusted_signing:
+        required: false
+        type: boolean
+        default: false
+      publish_path:
+        required: false
+        type: string
+        default: './publish-msix'
+      file_name:
+        required: false
+        type: string
+        default: 'App'
+    secrets:
+      READ_PACKAGES_USERNAME:
+        required: false
+      READ_PACKAGES_TOKEN:
+        required: false
+      AZURE_TENANT_ID:
+        required: false
+      AZURE_CLIENT_ID:
+        required: false
+      AZURE_CLIENT_SECRET:
+        required: false
+      AZURE_ENDPOINT:
+        required: false
+      AZURE_TRUSTED_SIGNING_ACCOUNT_NAME:
+        required: false
+      AZURE_CERTIFICATE_PROFILE_NAME:
+        required: false
+    outputs:
+      cache_key:
+        description: "The key of the cache storing the msix"
+        value: ${{ jobs.publish.outputs.cache_key }}
+
+jobs:
+  publish:
+    name: Publish .NET Application
+    runs-on: windows-latest
+    outputs:
+      cache_key : ${{ steps.set_key.outputs.cache_key }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Execute powershell script
+        if: inputs.run_powershell_command != ''
+        shell: pwsh
+        run: |
+          & ${{ inputs.run_powershell_command }}
+      - name: Replace project version
+        run: |
+          $projectBaseDirectory = Split-Path ${{ inputs.installer_project_path }}
+          $manifestPath = "$projectBaseDirectory/Package.appxmanifest"
+          echo "Updating version of manifest $manifestPath to ${{ inputs.release_version }}"
+          (Get-Content $manifestPath) -replace ' Version="([0-9]+\.[0-9]+\.[0-9]+)\.0"', " Version=`"${{ inputs.release_version }}.0`"" | Set-Content $manifestPath
+
+      - name: Setup dotnet and build solution
+        uses: ./.github/actions/dotnet-build
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+          package-username: ${{ secrets.READ_PACKAGES_USERNAME }}
+          package-password: ${{ secrets.READ_PACKAGES_TOKEN }}
+
+      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
+
+      # Create the app package by building and packaging the Windows Application Packaging project
+      - name: Create the app package
+        run: |
+          $projectBaseDirectory = Split-Path ${{ inputs.installer_project_path }}
+          msbuild ${{ inputs.installer_project_path}} \
+              /p:Configuration=Release \
+              /p:UapAppxPackageBuildMode=SideloadOnly \
+              /p:AppxBundle=Always \
+              /p:AppxBundlePlatforms=${{ inputs.msix_bundle_platforms }} \
+              /p:GenerateAppxPackageOnBuild=true \
+              /p:AppxPackageSigningEnabled=false \
+              /p:Version=${{ inputs.release_version }}
+      - run: |
+          mkdir output-msix
+          Get-ChildItem -Path $projectBaseDirectory\AppPackages -Recurse -Filter *.msix* | ForEach-Object {
+            Move-Item -Path $_.FullName -Destination .\output-msix
+          }
+          $file = Get-Item "*.Installer_*.msixbundle"
+          Rename-Item -Path $file.FullName -NewName ${{ inputs.file_name }}
+        shell: powershell
+
+      - name: Sign files with Trusted Signing
+        uses: azure/trusted-signing-action@v0.4.0
+        if: inputs.sign_with_trusted_signing == 'true'
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.AZURE_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.AZURE_CERTIFICATE_PROFILE_NAME }}
+          files-folder: ${{ inputs.publish_path }}
+
+      - name: Set cache_key
+        id: set_key
+        run: |
+          echo "cache_key=publish-msix-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Cache releases
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ inputs.publish_path }}
+          key: ${{ steps.set_key.outputs.cache_key }}
+          enableCrossOsArchive: true
