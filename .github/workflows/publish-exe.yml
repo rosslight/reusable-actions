@@ -21,11 +21,14 @@ on:
       file_name:
         required: false
         type: string
-        default: 'WinX64'
+        default: 'App'
       publish_path:
         required: false
         type: string
         default: './publish-exe'
+      runtime_identifier:
+        required: true
+        type: string
     secrets:
       READ_PACKAGES_USERNAME:
         required: false
@@ -38,7 +41,7 @@ on:
 
 jobs:
   publish:
-    name: Publish win-x64
+    name: Publish .NET Application
     runs-on: ubuntu-latest
     outputs:
       cache_key : ${{ steps.set_key.outputs.cache_key }}
@@ -53,19 +56,21 @@ jobs:
 
       - name: Publish and zip
         run: |
-          dotnet publish -c Release -r win-x64 ${{ inputs.project_path }} \
-              -o ${{ inputs.publish_path }}/WinX64 \
+          dotnet publish ${{ inputs.project_path }} \
+              -c Release \
+              -r ${{ inputs.runtime_identifier }} \
+              -o ${{ inputs.publish_path }}/output \
               --self-contained ${{ inputs.self_contained }} \
               -p:PublishSingleFile=${{ inputs.single_file }} \
               /p:EnableWindowsTargeting=true \
               /p:Version=${{ inputs.release_version }}
           cd ${{ inputs.publish_path }}
-          zip -r ${{ inputs.file_name }}.zip WinX64 && rm -r WinX64
+          zip -r ${{ inputs.file_name }}.zip output && rm -r output
 
       - name: Set cache_key
         id: set_key
         run: |
-          echo "cache_key=publish-exe-${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "cache_key=publish-${{ inputs.runtime_identifier }}-${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Cache releases
         uses: actions/cache/save@v4
