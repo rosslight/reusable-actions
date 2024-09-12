@@ -64,8 +64,11 @@ jobs:
               -p:PublishSingleFile=${{ inputs.single_file }} \
               /p:EnableWindowsTargeting=true \
               /p:Version=${{ inputs.release_version }}
-          cd ${{ inputs.publish_path }}
-          zip -r ${{ inputs.file_name }}.zip output && rm -r output
+          cd ${{ inputs.publish_path }}/output
+          zip -r ${{ inputs.file_name }}.zip .
+          cd ..
+          mv output/${{ inputs.file_name }}.zip .
+          rm -r output
 
       - name: Set cache_key
         id: set_key

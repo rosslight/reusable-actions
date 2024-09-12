@@ -108,15 +108,19 @@ jobs:
           recreate: true
           path: code-coverage-results.md
 
-      - name: Move everything in correct folder
+      - name: Move everything in correct folder and zip
         if: inputs.cache_reports
         run: |
           mv code-coverage-results.md ${{ inputs.reports_path }}
           mkdir ${{ inputs.reports_path }}/${{ inputs.file_name }}
+          cd ${{ inputs.reports_path }}
           shopt -s extglob # Enable extended pattern matching
-          mv ${{ inputs.reports_path }}/!(${{ inputs.file_name }}) ${{ inputs.reports_path }}/${{ inputs.file_name }}
-          zip -r ${{ inputs.reports_path }}/${{ inputs.file_name }}.zip ${{ inputs.reports_path }}/${{ inputs.file_name }}
-          rm -r ${{ inputs.reports_path }}/${{ inputs.file_name }}
+          mv !(${{ inputs.file_name }}) ${{ inputs.file_name }}
+          cd ${{ inputs.file_name }}
+          zip -r ${{ inputs.file_name }}.zip .
+          cd ..
+          mv ${{ inputs.file_name }}/${{ inputs.file_name }}.zip .
+          rm -r ${{ inputs.file_name }}
 
       - name: Set cache_key
         if: inputs.cache_reports
