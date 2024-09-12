@@ -113,7 +113,8 @@ jobs:
         run: |
           mv code-coverage-results.md ${{ inputs.reports_path }}
           mkdir ${{ inputs.reports_path }}/${{ inputs.file_name }}
-          mv ${{ inputs.reports_path }}/* ${{ inputs.reports_path }}/${{ inputs.file_name }}
+          shopt -s extglob # Enable extended pattern matching
+          mv ${{ inputs.reports_path }}/!(${{ inputs.file_name }}) ${{ inputs.reports_path }}/${{ inputs.file_name }}
           zip -r ${{ inputs.reports_path }}/${{ inputs.file_name }}.zip ${{ inputs.reports_path }}/${{ inputs.file_name }}
           rm -r ${{ inputs.reports_path }}/${{ inputs.file_name }}
 
