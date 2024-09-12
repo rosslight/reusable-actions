@@ -26,6 +26,10 @@ on:
         required: false
         type: boolean
         default: true
+      file_name:
+        required: false
+        type: string
+        default: 'TestArtifacts'
     secrets:
       READ_PACKAGES_USERNAME:
         required: false
@@ -65,7 +69,7 @@ jobs:
         if: always()        # run this step even if previous step failed
         run: |
           mkdir ${{ inputs.reports_path }}
-          mv ./results/test/**/*.trx ./test-reports
+          mv ./results/test/**/*.trx ${{ inputs.reports_path }}
 
       - name: Test Report
         uses: dorny/test-reporter@v1
@@ -108,6 +112,10 @@ jobs:
         if: inputs.cache_reports
         run: |
           mv code-coverage-results.md ${{ inputs.reports_path }}
+          mkdir ${{ inputs.reports_path }}/${{ inputs.file_name }}
+          mv ${{ inputs.reports_path }}/* ${{ inputs.reports_path }}/${{ inputs.file_name }}
+          zip -r ${{ inputs.reports_path }}/${{ inputs.file_name }}.zip ${{ inputs.reports_path }}/${{ inputs.file_name }}
+          rm -r ${{ inputs.reports_path }}/${{ inputs.file_name }}
 
       - name: Set cache_key
         if: inputs.cache_reports
