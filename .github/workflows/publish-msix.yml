@@ -101,11 +101,11 @@ jobs:
               /p:AppxPackageSigningEnabled=false `
               /p:Version=${{ inputs.release_version }}
           mkdir ${{ inputs.publish_path }}
-          echo "Staerting to copy files"
+          echo "Starting to copy files from $projectBaseDirectory\AppPackages"
           dir $projectBaseDirectory\AppPackages
           Get-ChildItem -Path $projectBaseDirectory\AppPackages -Recurse -Filter *.msix* | ForEach-Object {
             echo "Found $($_.FullName)"
-            Move-Item -Path $_.FullName -Destination ${{ inputs.publish_path }}
+            mv $_.FullName ${{ inputs.publish_path }}
           }
           dir ${{ inputs.publish_path }}
           $file = Get-Item "*.Installer_*.msix*"
