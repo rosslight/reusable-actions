@@ -30,6 +30,11 @@ on:
         required: false
         type: string
         default: 'TestArtifacts'
+      dotnet_workloads:
+        description: A space-separated list of workloads to be installed
+        required: false
+        type: string
+        default: ''
     secrets:
       READ_PACKAGES_USERNAME:
         required: false
@@ -55,6 +60,7 @@ jobs:
           dotnet_version: ${{ inputs.dotnet_version }}
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
+          workloads: ${{ inputs.dotnet_workloads }}
 
       # Test all projects inside the ./test directory.
       # Coverage goes to ./results/uuid/...

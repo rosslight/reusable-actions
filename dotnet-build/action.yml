@@ -16,6 +16,10 @@ inputs:
     description: The password of the nuget package source 'rosslight'
     required: false
     default: ''
+  workloads:
+    description: A space-separated list of workloads to be installed
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -32,6 +36,11 @@ runs:
         path: ~/.nuget/packages
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
         restore-keys: ${{ runner.os }}-nuget
+
+    - name: Install workloads
+      if: inputs.workloads != ''
+      run: |
+        dotnet workload install ${{ inputs.workloads }} --source https://api.nuget.org/v3/index.json
 
     - name: Set up 'rosslight' nuget source
       if: inputs.package_username != '' && inputs.package_password != ''
