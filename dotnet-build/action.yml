@@ -16,7 +16,7 @@ inputs:
     description: The password of the nuget package source 'rosslight'
     required: false
     default: ''
-  workloads:
+  dotnet_workloads:
     description: A space-separated list of workloads to be installed
     required: false
     default: ''
@@ -41,6 +41,7 @@ runs:
       if: inputs.workloads != ''
       run: |
         dotnet workload install ${{ inputs.workloads }} --source https://api.nuget.org/v3/index.json
+      shell: pwsh
 
     - name: Set up 'rosslight' nuget source
       if: inputs.package_username != '' && inputs.package_password != ''

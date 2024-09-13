@@ -60,7 +60,7 @@ jobs:
           dotnet_version: ${{ inputs.dotnet_version }}
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
-          workloads: ${{ inputs.dotnet_workloads }}
+          dotnet_workloads: ${{ inputs.dotnet_workloads }}
 
       # Test all projects inside the ./test directory.
       # Coverage goes to ./results/uuid/...
