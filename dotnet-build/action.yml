@@ -4,6 +4,10 @@ inputs:
   dotnet_version:
     description: The dotnet version to be used
     required: true
+  build_projects:
+    required: false
+    type: string
+    default: '**/*.csproj'
   enable_win_target:
     description: Sets 'EnableWindowsTargeting' during the dotnet build process
     required: false
@@ -45,10 +49,13 @@ runs:
 
     - name: Set up 'rosslight' nuget source
       if: inputs.package_username != '' && inputs.package_password != ''
-      run: |
-        dotnet nuget add source --name rosslight --username ${{ inputs.package_username }} --password ${{ inputs.package_password }} --store-password-in-clear-text "https://nuget.pkg.github.com/rosslight//index.json"
+      run: dotnet nuget add source --name rosslight --username ${{ inputs.package_username }} --password ${{ inputs.package_password }} --store-password-in-clear-text "https://nuget.pkg.github.com/rosslight//index.json"
       shell: pwsh
 
     - name: Build
-      run: dotnet build --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
+      run: |
+        IFS=';' read -ra patterns <<< "${{ inputs.build_projects }}"
+        for pattern in "${patterns[@]}"; do
+          dotnet build "$pattern" --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
+        done
       shell: pwsh

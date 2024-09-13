@@ -6,6 +6,10 @@ on:
       dotnet_version:
         required: true
         type: string
+      src_projects:
+        required: false
+        type: string
+        default: './src/**/*.csproj'
       test_projects:
         required: false
         type: string
@@ -63,6 +67,7 @@ jobs:
         uses: rosslight/reusable-actions/dotnet-build@main
         with:
           dotnet_version: ${{ inputs.dotnet_version }}
+          build_projects: '${{ inputs.src_projects }};${{ inputs.test_projects }}'
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
           dotnet_workloads: ${{ inputs.dotnet_workloads }}
@@ -73,8 +78,11 @@ jobs:
       # Result logs go to ./results/test/PROJECT_NAME/
       - name: Test
         run: |
-          for d in ${{ inputs.test_projects }} ; do \
-            dotnet test "$d" --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./results --logger "trx;logfilename=${d%.*}.trx"; \
+          IFS=';' read -ra patterns <<< "${{ inputs.test_projects }}"
+          for pattern in "${patterns[@]}"; do
+            for d in $pattern; do
+              dotnet test "$d" --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./results --logger "trx;logfilename=${d%.*}.trx";
+            done
           done
 
       - name: Move reports
