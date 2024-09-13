@@ -54,8 +54,8 @@ runs:
 
     - name: Build
       run: |
-        $patterns = ${{ inputs.build_projects }} -split ';'
+        $patterns = "${{ inputs.build_projects }}".Split(";")
         foreach ($pattern in $patterns) {
-          dotnet build "$pattern" --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
+          dotnet build $pattern.FullName --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
         }
       shell: pwsh
