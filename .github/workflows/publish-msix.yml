@@ -108,7 +108,7 @@ jobs:
             mv $_.FullName ${{ inputs.publish_path }}
           }
           dir ${{ inputs.publish_path }}
-          $file = Get-Item "*.Installer_*.msix*"
+          $file = Get-Item "${{ inputs.publish_path }}\*.Installer_*.msix"
           if ($file.FullName -eq $null) {
             throw "No file found"
           }
