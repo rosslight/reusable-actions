@@ -70,11 +70,11 @@ runs:
       run: |
         $patterns = "${{ inputs.build_projects }}".Split(";")
         foreach ($pattern in $patterns) {
+          if ([string]::IsNullOrEmpty($pattern)) {
+            continue
+          }
           $projects = Get-ChildItem -Recurse -Filter *.csproj -Path $pattern
           foreach ($project in $projects) {
-            if ([string]::IsNullOrEmpty($project.FullName)) {
-              continue
-            }
             $command = "dotnet build $($project.FullName)"
             $command += " --configuration Release"
             $command += " /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}"

@@ -77,11 +77,11 @@ jobs:
         run: |
           IFS=';' read -r -a patterns <<< "${{ inputs.src_projects }};${{ inputs.test_projects }}"
           for pattern in "${patterns[@]}"; do
-            for d in $pattern; do
-              if [[ -n "$d" ]]; then
+            if [[ -n "$pattern" ]]; then
+              for d in $pattern; do
                 dotnet format "$d" --verify-no-changes --verbosity diagnostic
-              fi
-            done
+              done
+            fi
           done
 
       # Test all projects inside the ./test directory.
