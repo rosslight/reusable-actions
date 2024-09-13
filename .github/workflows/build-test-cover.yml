@@ -102,6 +102,7 @@ jobs:
           fail-on-error: true
 
       - name: Combine Coverage Reports
+        if: inputs.test_projects != ''
         run: |
           export PATH="$PATH:/root/.dotnet/tools"
           dotnet tool install --global dotnet-coverage
