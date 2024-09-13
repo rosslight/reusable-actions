@@ -73,13 +73,13 @@ runs:
           $projects = Get-ChildItem -Recurse -Filter *.csproj -Path $pattern
           foreach ($project in $projects) {
             $command = "dotnet build $($projectPath.FullName) "
-            $command = " --configuration Release"
-            $command = " /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}"
+            $command += " --configuration Release"
+            $command += " /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}"
             if ($inputs.runtime_identifiers -ne '') {
                 $command += " /p:RuntimeIdentifiers=${{ inputs.runtime_identifiers }}"
             }
             echo "Execute $command"
-            @ "$command"
+            Invoke-Expression $command
           }
         }
       shell: pwsh
