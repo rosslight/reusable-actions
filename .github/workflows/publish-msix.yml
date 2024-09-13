@@ -101,12 +101,17 @@ jobs:
               /p:AppxPackageSigningEnabled=false `
               /p:Version=${{ inputs.release_version }}
           mkdir ${{ inputs.publish_path }}
+          echo "Staerting to copy files"
+          dir $projectBaseDirectory\AppPackages
           Get-ChildItem -Path $projectBaseDirectory\AppPackages -Recurse -Filter *.msix* | ForEach-Object {
             echo "Found $($_.FullName)"
             Move-Item -Path $_.FullName -Destination ${{ inputs.publish_path }}
           }
           dir ${{ inputs.publish_path }}
-          $file = Get-Item "*.Installer_*.msixbundle"
+          $file = Get-Item "*.Installer_*.msix*"
+          if ($file.FullName -eq $null) {
+            throw "No file found"
+          }
           Rename-Item -Path $file.FullName -NewName ${{ inputs.file_name }}
         shell: powershell
 
