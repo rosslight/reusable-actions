@@ -72,7 +72,7 @@ runs:
         foreach ($pattern in $patterns) {
           $projects = Get-ChildItem -Recurse -Filter *.csproj -Path $pattern
           foreach ($project in $projects) {
-            $command = "dotnet build $($projectPath.FullName) "
+            $command = "dotnet build $($project.FullName) "
             $command += " --configuration Release"
             $command += " /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}"
             if ($inputs.runtime_identifiers -ne '') {
