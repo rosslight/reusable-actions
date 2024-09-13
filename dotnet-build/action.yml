@@ -73,10 +73,7 @@ runs:
           $projects = Get-ChildItem -Recurse -Filter *.csproj -Path $pattern
           foreach ($project in $projects) {
             echo "Start building project $project"
-            $args = @()
-            $args += "build"
-            $args += "$project.FullName"
-            $args += "--configuration Release"
+            $args = @("build", $projectPath.FullName, "--configuration", "Release")
             $args += "/p:EnableWindowsTargeting=${{ inputs.enable_win_target }}"
             if ($inputs.runtime_identifiers -ne '') {
                 $args += "/p:RuntimeIdentifiers=${{ inputs.runtime_identifiers }}"
