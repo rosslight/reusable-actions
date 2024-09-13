@@ -72,7 +72,7 @@ runs:
         foreach ($pattern in $patterns) {
           $projects = Get-ChildItem -Recurse -Filter *.csproj -Path $pattern
           foreach ($project in $projects) {
-            if ($null -eq $project) {
+            if ([string]::IsNullOrEmpty($project.FullName)) {
               continue
             }
             $command = "dotnet build $($project.FullName)"
