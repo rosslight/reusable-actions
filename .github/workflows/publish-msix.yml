@@ -91,7 +91,6 @@ jobs:
       # Create the app package by building and packaging the Windows Application Packaging project
       - name: Create the app package
         run: |
-          $projectBaseDirectory = Split-Path ${{ inputs.installer_project_path }}
           msbuild ${{ inputs.installer_project_path}} `
               /p:Configuration=Release `
               /p:Platform=${{ inputs.msix_platform }} `
@@ -103,6 +102,7 @@ jobs:
         shell: powershell
       - name: Move and rename
         run: |
+          $projectBaseDirectory = Split-Path ${{ inputs.installer_project_path }}
           mkdir ${{ inputs.publish_path }}
           echo "Starting to copy files from $projectBaseDirectory\AppPackages"
           dir $projectBaseDirectory\AppPackages
