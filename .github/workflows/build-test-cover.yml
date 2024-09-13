@@ -78,7 +78,7 @@ jobs:
       # Result logs go to ./results/test/PROJECT_NAME/
       - name: Test
         run: |
-          IFS=';' read -ra patterns <<< "${{ inputs.test_projects }}"
+          IFS=';' read -r -a patterns <<< "${{ inputs.test_projects }}"
           for pattern in "${patterns[@]}"; do
             for d in $pattern; do
               dotnet test "$d" --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./results --logger "trx;logfilename=${d%.*}.trx";

@@ -54,7 +54,7 @@ runs:
 
     - name: Build
       run: |
-        IFS=';' read -ra patterns <<< "${{ inputs.build_projects }}"
+        $patterns = ${{ inputs.build_projects }} -split ';'
         for pattern in "${patterns[@]}"; do
           dotnet build "$pattern" --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
         done
