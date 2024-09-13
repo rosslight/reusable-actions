@@ -90,13 +90,13 @@ jobs:
       - name: Create the app package
         run: |
           $projectBaseDirectory = Split-Path ${{ inputs.installer_project_path }}
-          msbuild ${{ inputs.installer_project_path}} \
-              /p:Configuration=Release \
-              /p:UapAppxPackageBuildMode=SideloadOnly \
-              /p:AppxBundle=Always \
-              /p:AppxBundlePlatforms=${{ inputs.msix_bundle_platforms }} \
-              /p:GenerateAppxPackageOnBuild=true \
-              /p:AppxPackageSigningEnabled=false \
+          msbuild ${{ inputs.installer_project_path}} `
+              /p:Configuration=Release `
+              /p:UapAppxPackageBuildMode=SideloadOnly `
+              /p:AppxBundle=Always `
+              /p:AppxBundlePlatforms=${{ inputs.msix_bundle_platforms }} `
+              /p:GenerateAppxPackageOnBuild=true `
+              /p:AppxPackageSigningEnabled=false `
               /p:Version=${{ inputs.release_version }}
       - run: |
           mkdir output-msix
