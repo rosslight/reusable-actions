@@ -100,10 +100,12 @@ jobs:
               /p:GenerateAppxPackageOnBuild=true `
               /p:AppxPackageSigningEnabled=false `
               /p:Version=${{ inputs.release_version }}
-          mkdir output-msix
+          mkdir ${{ inputs.publish_path }}
           Get-ChildItem -Path $projectBaseDirectory\AppPackages -Recurse -Filter *.msix* | ForEach-Object {
-            Move-Item -Path $_.FullName -Destination .\output-msix
+            echo "Found $($_.FullName)"
+            Move-Item -Path $_.FullName -Destination ${{ inputs.publish_path }}
           }
+          dir ${{ inputs.publish_path }}
           $file = Get-Item "*.Installer_*.msixbundle"
           Rename-Item -Path $file.FullName -NewName ${{ inputs.file_name }}
         shell: powershell
