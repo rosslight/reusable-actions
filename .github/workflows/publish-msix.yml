@@ -13,7 +13,7 @@ on:
       release_version:
         required: true
         type: string
-      msix_bundle_platforms:
+      msix_platform:
         required: true
         type: string
       run_powershell_command:
@@ -92,9 +92,9 @@ jobs:
           $projectBaseDirectory = Split-Path ${{ inputs.installer_project_path }}
           msbuild ${{ inputs.installer_project_path}} `
               /p:Configuration=Release `
+              /p:Platform=${{ inputs.msix_platform }} `
               /p:UapAppxPackageBuildMode=SideloadOnly `
-              /p:AppxBundle=Always `
-              /p:AppxBundlePlatforms=${{ inputs.msix_bundle_platforms }} `
+              /p:AppxBundle=Never `
               /p:GenerateAppxPackageOnBuild=true `
               /p:AppxPackageSigningEnabled=false `
               /p:Version=${{ inputs.release_version }}
