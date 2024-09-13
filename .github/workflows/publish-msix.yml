@@ -82,6 +82,7 @@ jobs:
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
           enable_win_target: true
+          runtime_identifiers: win-${{ inputs.msix_platform }}
 
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe

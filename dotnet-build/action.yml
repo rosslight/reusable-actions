@@ -24,6 +24,10 @@ inputs:
     description: A space-separated list of workloads to be installed
     required: false
     default: ''
+  runtime_identifiers:
+    description: A semicolon-separated list of runtime identifiers
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -69,7 +73,10 @@ runs:
           $projects = Get-ChildItem -Recurse -Filter *.csproj -Path $pattern
           foreach ($project in $projects) {
             echo "Start building project $project"
-            dotnet build $project.FullName --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
+            dotnet build $project.FullName `
+                --configuration Release `
+                /p:EnableWindowsTargeting=${{ inputs.enable_win_target }} `
+                /p:RuntimeIdentifers=${{ inputs.runtime_identifiers }}
           }
         }
       shell: pwsh
