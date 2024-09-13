@@ -13,7 +13,6 @@ on:
       test_projects:
         required: false
         type: string
-        default: './test/**/*.csproj'
       report_results:
         required: false
         type: boolean
@@ -67,7 +66,7 @@ jobs:
         uses: rosslight/reusable-actions/dotnet-build@main
         with:
           dotnet_version: ${{ inputs.dotnet_version }}
-          build_projects: '${{ inputs.src_projects }};${{ inputs.test_projects }}'
+          build_projects: ${{ inputs.src_projects }}
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
           dotnet_workloads: ${{ inputs.dotnet_workloads }}
@@ -77,6 +76,7 @@ jobs:
       # Coverage goes to ./results/uuid/...
       # Result logs go to ./results/test/PROJECT_NAME/
       - name: Test
+        if: inputs.test_projects != ''
         run: |
           IFS=';' read -r -a patterns <<< "${{ inputs.test_projects }}"
           for pattern in "${patterns[@]}"; do
@@ -86,14 +86,15 @@ jobs:
           done
 
       - name: Move reports
-        if: always()        # run this step even if previous step failed
+        if: always() && inputs.test_projects != ''        # run this step even if previous step failed
         run: |
           mkdir ${{ inputs.reports_path }}
+          mkdir './results/test'
           mv ./results/test/**/*.trx ${{ inputs.reports_path }}
 
       - name: Test Report
         uses: dorny/test-reporter@v1
-        if: always() && inputs.report_results
+        if: always() && inputs.test_projects != '' && inputs.report_results
         with:
           name: Tests
           path: ${{ inputs.reports_path }}/*.trx
