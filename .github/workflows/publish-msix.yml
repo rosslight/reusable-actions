@@ -7,6 +7,9 @@ on:
       installer_project_path:
         required: true
         type: string
+      project_path:
+        required: true
+        type: string
       release_version:
         required: true
         type: string
@@ -72,9 +75,10 @@ jobs:
           (Get-Content $manifestPath) -replace ' Version="([0-9]+\.[0-9]+\.[0-9]+)\.0"', " Version=`"${{ inputs.release_version }}.0`"" | Set-Content $manifestPath
 
       - name: Setup dotnet and build solution
-        uses: ./.github/actions/dotnet-build
+        uses: rosslight/reusable-actions/dotnet-build@main
         with:
           dotnet-version: ${{ inputs.dotnet_version }}
+          build_projects: ${{ inputs.project_path }}
           package-username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package-password: ${{ secrets.READ_PACKAGES_TOKEN }}
 
