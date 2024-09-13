@@ -76,7 +76,7 @@ runs:
             dotnet build $project.FullName `
                 --configuration Release `
                 /p:EnableWindowsTargeting=${{ inputs.enable_win_target }} `
-                /p:RuntimeIdentifers=${{ inputs.runtime_identifiers }}
+                /p:RuntimeIdentifiers=${{ inputs.runtime_identifiers }}
           }
         }
       shell: pwsh
