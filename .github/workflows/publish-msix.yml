@@ -130,7 +130,7 @@ jobs:
       - name: Set cache_key
         id: set_key
         run: |
-          echo "cache_key=publish-msix-${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "cache_key=publish-msix-${{ github.sha }}" >> $Env:GITHUB_OUTPUT
 
       - name: Cache releases
         uses: actions/cache/save@v4
