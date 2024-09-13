@@ -76,7 +76,7 @@ runs:
             $args = @()
             $args += "build"
             $args += "$project.FullName"
-            $args += --configuration Release
+            $args += "--configuration Release"
             $args += "/p:EnableWindowsTargeting=${{ inputs.enable_win_target }}"
             if ($inputs.runtime_identifiers -ne '') {
                 $args += "/p:RuntimeIdentifiers=${{ inputs.runtime_identifiers }}"
