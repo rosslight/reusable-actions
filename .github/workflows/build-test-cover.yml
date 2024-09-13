@@ -66,11 +66,23 @@ jobs:
         uses: rosslight/reusable-actions/dotnet-build@main
         with:
           dotnet_version: ${{ inputs.dotnet_version }}
-          build_projects: ${{ inputs.src_projects }}
+          build_projects: '${{ inputs.src_projects }};${{ inputs.test_projects }}'
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
           dotnet_workloads: ${{ inputs.dotnet_workloads }}
           enable_win_target: ${{ inputs.enable_win_target }}
+
+      - name: Format
+        if: inputs.src_projects != '' || inputs.test_projects
+        run: |
+          IFS=';' read -r -a patterns <<< "${{ inputs.src_projects }};${{ inputs.test_projects }}"
+          for pattern in "${patterns[@]}"; do
+            for d in $pattern; do
+              if [[ -n "$d" ]]; then
+                dotnet format "$d" --verify-no-changes --verbosity diagnostic
+              fi
+            done
+          done
 
       # Test all projects inside the ./test directory.
       # Coverage goes to ./results/uuid/...
