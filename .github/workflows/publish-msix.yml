@@ -81,6 +81,7 @@ jobs:
           build_projects: ${{ inputs.project_path }}
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
+          enable_win_target: true
 
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild.exe
@@ -98,7 +99,6 @@ jobs:
               /p:GenerateAppxPackageOnBuild=true `
               /p:AppxPackageSigningEnabled=false `
               /p:Version=${{ inputs.release_version }}
-      - run: |
           mkdir output-msix
           Get-ChildItem -Path $projectBaseDirectory\AppPackages -Recurse -Filter *.msix* | ForEach-Object {
             Move-Item -Path $_.FullName -Destination .\output-msix
