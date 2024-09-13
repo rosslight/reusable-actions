@@ -24,8 +24,8 @@ inputs:
     description: A space-separated list of workloads to be installed
     required: false
     default: ''
-  runtime_identifiers:
-    description: A semicolon-separated list of runtime identifiers
+  dotnet_build_args:
+    description: A string of build arguments
     required: false
     default: ''
 
@@ -78,9 +78,7 @@ runs:
             $command = "dotnet build $($project.FullName)"
             $command += " --configuration Release"
             $command += " /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}"
-            if ($inputs.runtime_identifiers -ne '') {
-                $command += " /p:RuntimeIdentifiers=${{ inputs.runtime_identifiers }}"
-            }
+            $command += " ${{ inputs.dotnet_build_args }}"
             echo "Execute $command"
             Invoke-Expression $command
           }
