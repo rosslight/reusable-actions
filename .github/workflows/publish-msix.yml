@@ -100,6 +100,9 @@ jobs:
               /p:GenerateAppxPackageOnBuild=true `
               /p:AppxPackageSigningEnabled=false `
               /p:Version=${{ inputs.release_version }}
+        shell: powershell
+      - name: Move and rename
+        run: |
           mkdir ${{ inputs.publish_path }}
           echo "Starting to copy files from $projectBaseDirectory\AppPackages"
           dir $projectBaseDirectory\AppPackages
@@ -112,7 +115,7 @@ jobs:
           if ($file.FullName -eq $null) {
             throw "No file found"
           }
-          Rename-Item -Path $file.FullName -NewName ${{ inputs.file_name }}
+          Rename-Item -Path $file.FullName -NewName "${{ inputs.file_name }}.msix"
           dir ${{ inputs.publish_path }}
         shell: powershell
 
