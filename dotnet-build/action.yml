@@ -66,7 +66,10 @@ runs:
       run: |
         $patterns = "${{ inputs.build_projects }}".Split(";")
         foreach ($pattern in $patterns) {
-          echo "Start building $pattern.FullName"
-          dotnet build $pattern.FullName --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
+          $projects = Get-ChildItem -Recurse -Filter *.csproj -Path $pattern
+          foreach ($project in $projects) {
+            echo "Start building project $project"
+            dotnet build $project.FullName --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
+          }
         }
       shell: pwsh
