@@ -113,6 +113,7 @@ jobs:
             throw "No file found"
           }
           Rename-Item -Path $file.FullName -NewName ${{ inputs.file_name }}
+          dir ${{ inputs.publish_path }}
         shell: powershell
 
       - name: Sign files with Trusted Signing
