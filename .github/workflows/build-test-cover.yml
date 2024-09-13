@@ -30,6 +30,11 @@ on:
         required: false
         type: string
         default: 'TestArtifacts'
+      enable_win_target:
+        description: Sets 'EnableWindowsTargeting' during the dotnet build process
+        required: false
+        type: boolean
+        default: false
       dotnet_workloads:
         description: A space-separated list of workloads to be installed
         required: false
@@ -61,6 +66,7 @@ jobs:
           package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
           package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
           dotnet_workloads: ${{ inputs.dotnet_workloads }}
+          enable_win_target: ${{ inputs.enable_win_target }}
 
       # Test all projects inside the ./test directory.
       # Coverage goes to ./results/uuid/...

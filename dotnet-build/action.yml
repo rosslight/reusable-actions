@@ -38,9 +38,9 @@ runs:
         restore-keys: ${{ runner.os }}-nuget
 
     - name: Install workloads
-      if: inputs.workloads != ''
+      if: inputs.dotnet_workloads != ''
       run: |
-        dotnet workload install ${{ inputs.workloads }} --source https://api.nuget.org/v3/index.json
+        dotnet workload install ${{ inputs.dotnet_workloads }} --source https://api.nuget.org/v3/index.json
       shell: pwsh
 
     - name: Set up 'rosslight' nuget source
