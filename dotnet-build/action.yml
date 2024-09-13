@@ -57,7 +57,6 @@ runs:
         dotnet workload install ${{ inputs.dotnet_workloads }} --source https://api.nuget.org/v3/index.json
       shell: pwsh
 
-
     - name: Set up 'rosslight' nuget source
       if: inputs.package_username != '' && inputs.package_password != ''
       run: dotnet nuget add source --name rosslight --username ${{ inputs.package_username }} --password ${{ inputs.package_password }} --store-password-in-clear-text "https://nuget.pkg.github.com/rosslight//index.json"
@@ -67,6 +66,7 @@ runs:
       run: |
         $patterns = "${{ inputs.build_projects }}".Split(";")
         foreach ($pattern in $patterns) {
+          echo "Start building $pattern.FullName"
           dotnet build $pattern.FullName --configuration Release /p:EnableWindowsTargeting=${{ inputs.enable_win_target }}
         }
       shell: pwsh

@@ -109,7 +109,7 @@ jobs:
 
       - name: Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
-        if: inputs.report_results
+        if: inputs.test_projects != '' && inputs.report_results
         with:
           filename: ${{ inputs.reports_path }}/coverage.xml
           badge: true
@@ -124,13 +124,13 @@ jobs:
         # Add the coverage to the PR
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request' && inputs.report_results
+        if: inputs.test_projects != '' && github.event_name == 'pull_request' && inputs.report_results
         with:
           recreate: true
           path: code-coverage-results.md
 
       - name: Move everything in correct folder and zip
-        if: inputs.cache_reports
+        if: inputs.test_projects != '' && inputs.cache_reports
         run: |
           mv code-coverage-results.md ${{ inputs.reports_path }}
           mkdir ${{ inputs.reports_path }}/${{ inputs.file_name }}
