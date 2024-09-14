@@ -79,7 +79,7 @@ jobs:
           for pattern in "${patterns[@]}"; do
             if [[ -n "$pattern" ]]; then
               for d in $pattern; do
-                dotnet format "$d" --verify-no-changes --verbosity diagnostic
+                dotnet format "$d" --verify-no-changes --verbosity diagnostic --no-restore
               done
             fi
           done
