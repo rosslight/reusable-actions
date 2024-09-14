@@ -101,7 +101,7 @@ jobs:
         if: always() && inputs.test_projects != ''        # run this step even if previous step failed
         run: |
           mkdir ${{ inputs.reports_path }}
-          mkdir './results/test'
+          mkdir -p './results/test'
           mv ./results/test/**/*.trx ${{ inputs.reports_path }}
 
       - name: Test Report
