@@ -45,8 +45,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
-
     - name: Replace project version in Package.appxmanifest
       run: |
         $projectBaseDirectory = Split-Path ${{ inputs.installer_project_path }}
