@@ -43,6 +43,11 @@ on:
         required: false
         type: string
         default: ''
+      format_csharpier:
+        description: True, if csharpier should be used for formatting
+        required: false
+        type: boolean
+        default: false
     secrets:
       READ_PACKAGES_USERNAME:
         required: false
@@ -72,8 +77,8 @@ jobs:
           dotnet_workloads: ${{ inputs.dotnet_workloads }}
           enable_win_target: ${{ inputs.enable_win_target }}
 
-      - name: Format
-        if: inputs.src_projects != '' || inputs.test_projects
+      - name: Format dotnet format
+        if: (inputs.src_projects != '' || inputs.test_projects) && !inputs.format_csharpier
         run: |
           IFS=';' read -r -a patterns <<< "${{ inputs.src_projects }};${{ inputs.test_projects }}"
           for pattern in "${patterns[@]}"; do
@@ -83,6 +88,12 @@ jobs:
               done
             fi
           done
+
+      - name: Format csharpier
+        if: inputs.format_csharpier
+        run: |
+          dotnet tool restore
+          dotnet csharpier --check .
 
       # Test all projects inside the ./test directory.
       # Coverage goes to ./results/uuid/...
