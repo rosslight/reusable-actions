@@ -47,12 +47,12 @@ jobs:
       cache_key : ${{ steps.set_key.outputs.cache_key }}
     steps:
       - uses: actions/checkout@v4
-      #- name: Setup dotnet and build solution
-      #  uses: rosslight/reusable-actions/dotnet-build@main
-      #  with:
-      #    dotnet_version: ${{ inputs.dotnet_version }}
-      #    package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
-      #    package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
+      - name: Setup dotnet and build solution
+        uses: rosslight/reusable-actions/dotnet-build@main
+        with:
+          dotnet_version: ${{ inputs.dotnet_version }}
+          package_username: ${{ secrets.READ_PACKAGES_USERNAME }}
+          package_password: ${{ secrets.READ_PACKAGES_TOKEN }}
 
       - name: Publish and zip
         run: |
