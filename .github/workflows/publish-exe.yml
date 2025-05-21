@@ -42,7 +42,7 @@ on:
 jobs:
   publish:
     name: Publish .NET Application
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, self-hosted]
     outputs:
       cache_key : ${{ steps.set_key.outputs.cache_key }}
     steps:

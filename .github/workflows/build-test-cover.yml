@@ -60,7 +60,7 @@ on:
 
 jobs:
   build_test_cover:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, self-hosted]
     name: CI Build
     outputs:
       cache_key : ${{ steps.set_key.outputs.cache_key }}
