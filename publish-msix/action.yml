@@ -71,6 +71,7 @@ runs:
     - name: Create the app package
       run: |
         msbuild ${{ inputs.installer_project_path}} `
+            /restore /t:Rebuild `
             /p:Configuration=Release `
             /p:Platform=${{ inputs.msix_platform }} `
             /p:UapAppxPackageBuildMode=SideloadOnly `
