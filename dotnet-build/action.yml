@@ -2,30 +2,30 @@ name: Setup dotnet and build solution
 description: Specific steps to build for Windows
 inputs:
   dotnet_version:
-    description: The dotnet version to be used
-    required: true
-  build_projects:
+    description: "Optional SDK version(s) to use. If not provided, will install global.json version when available. Examples: 2.2.104, 3.1, 3.1.x, 3.x, 6.0.2xx"
     required: false
-    type: string
+  build_projects:
+    description: "A glob with projects to be build"
+    required: false
     default: '**/*.csproj'
   enable_win_target:
-    description: Sets 'EnableWindowsTargeting' during the dotnet build process
+    description: "Sets 'EnableWindowsTargeting' during the dotnet build process"
     required: false
     default: 'false'
   package_username:
-    description: The username of the nuget package source 'rosslight'
+    description: "The username of the nuget package source 'rosslight'"
     required: false
     default: ''
   package_password:
-    description: The password of the nuget package source 'rosslight'
+    description: "The password of the nuget package source 'rosslight'"
     required: false
     default: ''
   dotnet_workloads:
-    description: A space-separated list of workloads to be installed
+    description: "A space-separated list of workloads to be installed"
     required: false
     default: ''
   dotnet_build_args:
-    description: A string of build arguments
+    description: "A string of build arguments"
     required: false
     default: ''
 
