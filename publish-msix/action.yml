@@ -48,15 +48,17 @@ runs:
         (Get-Content $manifestPath) -replace ' Version="([0-9]+\.[0-9]+\.[0-9]+)\.0"', " Version=`"${{ inputs.release_version }}.0`"" | Set-Content $manifestPath
       shell: pwsh
 
-    - name: Setup dotnet and build solution
-      uses: ./dotnet-build
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet_version: ${{ inputs.dotnet_version }}
-        build_projects: ${{ inputs.project_path }}
-        package_username: ${{ inputs.READ_PACKAGES_USERNAME }}
-        package_password: ${{ inputs.READ_PACKAGES_TOKEN }}
-        enable_win_target: true
-        dotnet_build_args: '/p:RuntimeIdentifiers=win-${{ inputs.msix_platform }} /p:Version=${{ inputs.release_version }} ${{ inputs.dotnet_build_args }}'
+        dotnet-version: ${{ inputs.dotnet_version }}
+
+    - name: Build project
+      run: dotnet build -c Release `
+        /p:RuntimeIdentifiers=win-${{ inputs.msix_platform }} `
+        /p:Version=${{ inputs.release_version }} `
+        ${{ inputs.dotnet_build_args }}
+      shell: pwsh
 
     # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
