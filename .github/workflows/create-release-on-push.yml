@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Configure Semantic Release (see https://github.com/cycjimmy/semantic-release-action/issues/115)
+        run: echo '{"branches":[],"plugins":["@semantic-release/commit-analyzer","@semantic-release/release-notes-generator","@semantic-release/github"]}' > .releaserc.json
       - uses: cycjimmy/semantic-release-action@v4
         with:
           semantic_version: 24.2.3
