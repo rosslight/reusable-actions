@@ -54,7 +54,8 @@ runs:
         dotnet-version: ${{ inputs.dotnet_version }}
 
     - name: Build project
-      run: dotnet build -c Release `
+      run: dotnet build ${{ inputs.project_path }} `
+        -c Release `
         /p:RuntimeIdentifiers=win-${{ inputs.msix_platform }} `
         /p:Version=${{ inputs.release_version }} `
         ${{ inputs.dotnet_build_args }}
