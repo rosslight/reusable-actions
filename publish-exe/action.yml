@@ -70,9 +70,7 @@ runs:
         Compress-Archive -Path "${{ inputs.artifact_directory }}/*" -DestinationPath $zipPath
 
         # Remove original files after successful compression
-        if (Test-Path $zipPath) {
-            Get-ChildItem -Path $artifactDirectory | Where-Object { $_.FullName -ne $zipPath } | Remove-Item -Recurse -Force
-        }
+        Get-ChildItem -Path ${{ inputs.artifact_directory }} | Where-Object { $_.FullName -ne $zipPath } | Remove-Item -Recurse -Force
         dir ${{ inputs.artifact_directory }}
       shell: pwsh
 
