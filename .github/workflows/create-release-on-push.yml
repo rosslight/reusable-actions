@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: cycjimmy/semantic-release-action@v4
         with:
+          semantic_version: 24.2.3
           extra_plugins: |
             @semantic-release/commit-analyzer
             @semantic-release/release-notes-generator
