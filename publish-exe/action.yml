@@ -68,9 +68,11 @@ runs:
         dir ${{ inputs.artifact_directory }}
         $zipPath = "${{ inputs.artifact_directory }}/${{ inputs.file_name }}.zip"
         Compress-Archive -Path "${{ inputs.artifact_directory }}/*" -DestinationPath $zipPath
+        echo "Created zip $zipPath"
+        dir ${{ inputs.artifact_directory }}
 
         # Remove original files after successful compression
-        Get-ChildItem -Path ${{ inputs.artifact_directory }} | Where-Object { $_.FullName -ne $zipPath } | Remove-Item -Recurse -Force
+        Get-ChildItem -Path ${{ inputs.artifact_directory }} | Where-Object { $_.Extension -ne ".zip" } | Remove-Item -Recurse -Force
         dir ${{ inputs.artifact_directory }}
       shell: pwsh
 
