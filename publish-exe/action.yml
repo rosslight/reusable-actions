@@ -48,7 +48,7 @@ runs:
 
     # Create the app package by building and packaging the Windows Application Packaging project
     - name: Publish project
-      run: dotnet publish ${{ inputs.project_path }} --no-build
+      run: dotnet publish ${{ inputs.project_path }} --no-build ${{ inputs.dotnet_publish_args }}
       shell: pwsh
 
     - name: Move and rename
