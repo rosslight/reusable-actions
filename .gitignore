@@ -1,0 +1,8 @@
+# IDEs
+.idea/
+.vscode/
+*.Dotsettings.user
+.vs/
+*.[Cc]ache
+!?*.[Cc]ache/
+*.user
