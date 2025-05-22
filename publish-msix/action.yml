@@ -2,41 +2,36 @@ name: Setup dotnet and build solution
 description: Specific steps to build for Windows
 inputs:
   dotnet_version:
-    description: The dotnet version to be used
+    description: "Optional SDK version(s) to use. If not provided, will install global.json version when available. Examples: 2.2.104, 3.1, 3.1.x, 3.x, 6.0.2xx"
+    required: false
+  project_path:
+    description: "The path to the executable project. Should match the path in the '.wapproj'"
     required: true
   installer_project_path:
+    description: "The path to the '.wapproj'"
     required: true
-  project_path:
-    required: true
+  dotnet_build_args:
+    description: "The arguments to be passed to the build command"
+    required: false
+    default: ''
   release_version:
+    description: "The version of the app to be passed to the build commands"
     required: true
   msix_platform:
+    description: "The platform identifier of the .msix to be used. E.g. 'x64'"
     required: true
-  sign_with_trusted_signing:
+  dotnet_publish_args:
+    description: "The arguments to be passed to the msbuild command when publishing the msix"
     required: false
-    default: 'false'
-  publish_path:
+    default: ''
+  artifact_directory:
+    description: "A path to a directory which is not used by the repository and can be action"
     required: false
     default: './publish-msix'
   file_name:
+    description: "The resulting file name"
     required: false
     default: 'App'
-  READ_PACKAGES_USERNAME:
-    required: false
-  READ_PACKAGES_TOKEN:
-    required: false
-  AZURE_TENANT_ID:
-    required: false
-  AZURE_CLIENT_ID:
-    required: false
-  AZURE_CLIENT_SECRET:
-    required: false
-  AZURE_ENDPOINT:
-    required: false
-  AZURE_TRUSTED_SIGNING_ACCOUNT_NAME:
-    required: false
-  AZURE_CERTIFICATE_PROFILE_NAME:
-    required: false
 outputs:
   cache_key:
     description: "The key of the cache storing the msix"
@@ -54,16 +49,16 @@ runs:
       shell: pwsh
 
     - name: Setup dotnet and build solution
-      uses: rosslight/reusable-actions/dotnet-build@main
+      uses: ./dotnet-build
       with:
         dotnet_version: ${{ inputs.dotnet_version }}
         build_projects: ${{ inputs.project_path }}
         package_username: ${{ inputs.READ_PACKAGES_USERNAME }}
         package_password: ${{ inputs.READ_PACKAGES_TOKEN }}
         enable_win_target: true
-        dotnet_build_args: '/p:RuntimeIdentifiers=win-${{ inputs.msix_platform }} /p:Version=${{ inputs.release_version }}'
+        dotnet_build_args: '/p:RuntimeIdentifiers=win-${{ inputs.msix_platform }} /p:Version=${{ inputs.release_version }} ${{ inputs.dotnet_build_args }}'
 
-    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v2
 
@@ -78,39 +73,27 @@ runs:
             /p:AppxBundle=Never `
             /p:GenerateAppxPackageOnBuild=true `
             /p:AppxPackageSigningEnabled=false `
-            /p:Version=${{ inputs.release_version }}
+            /p:Version=${{ inputs.release_version }} ${{ inputs.dotnet_publish_args }}
       shell: pwsh
 
     - name: Move and rename
       run: |
         $projectBaseDirectory = Split-Path ${{ inputs.installer_project_path }}
-        mkdir ${{ inputs.publish_path }}
+        mkdir ${{ inputs.artifact_directory }}
         echo "Starting to copy files from $projectBaseDirectory\AppPackages"
         dir $projectBaseDirectory\AppPackages
         Get-ChildItem -Path $projectBaseDirectory\AppPackages -Recurse -Filter *.msix* | ForEach-Object {
           echo "Found $($_.FullName)"
-          mv $_.FullName ${{ inputs.publish_path }}
+          mv $_.FullName ${{ inputs.artifact_directory }}
         }
-        dir ${{ inputs.publish_path }}
-        $file = Get-Item "${{ inputs.publish_path }}\*.Installer_*.msix"
+        dir ${{ inputs.artifact_directory }}
+        $file = Get-Item "${{ inputs.artifact_directory }}\*.Installer_*.msix"
         if ($file.FullName -eq $null) {
           throw "No file found"
         }
         Rename-Item -Path $file.FullName -NewName "${{ inputs.file_name }}.msix"
-        dir ${{ inputs.publish_path }}
+        dir ${{ inputs.artifact_directory }}
       shell: pwsh
-
-    - name: Sign files with Trusted Signing
-      uses: azure/trusted-signing-action@v0.4.0
-      if: inputs.sign_with_trusted_signing
-      with:
-        azure-tenant-id: ${{ inputs.AZURE_TENANT_ID }}
-        azure-client-id: ${{ inputs.AZURE_CLIENT_ID }}
-        azure-client-secret: ${{ inputs.AZURE_CLIENT_SECRET }}
-        endpoint: ${{ inputs.AZURE_ENDPOINT }}
-        trusted-signing-account-name: ${{ inputs.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
-        certificate-profile-name: ${{ inputs.AZURE_CERTIFICATE_PROFILE_NAME }}
-        files-folder: ${{ inputs.publish_path }}
 
     - name: Set cache_key
       id: set_key
@@ -121,6 +104,6 @@ runs:
     - name: Cache releases
       uses: actions/cache/save@v4
       with:
-        path: ${{ inputs.publish_path }}
+        path: ${{ inputs.artifact_directory }}
         key: ${{ steps.set_key.outputs.cache_key }}
         enableCrossOsArchive: true
