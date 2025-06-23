@@ -48,38 +48,13 @@ runs:
 
     # Create the app package by building and packaging the Windows Application Packaging project
     - name: Publish project
-      run: dotnet publish ${{ inputs.project_path }} --no-build ${{ inputs.dotnet_publish_args }}
-      shell: pwsh
-
-    - name: Move and rename
-      run: |
-        $projectBaseDirectory = Split-Path ${{ inputs.project_path }}
-        mkdir ${{ inputs.artifact_directory }}
-        echo "Starting to copy files from $projectBaseDirectory/bin/Release/**/publish/*.exe"
-        Get-ChildItem -Path "$projectBaseDirectory/bin/Release" -Recurse -Filter "*.exe" | Where-Object { $_.FullName -like "*\publish\*.exe" } | ForEach-Object {
-          echo "Found $($_.FullName)"
-          mv $_.FullName ${{ inputs.artifact_directory }}
-        }
-        echo "Starting to copy files from $projectBaseDirectory/bin/Release/**/publish/*.dll"
-        Get-ChildItem -Path "$projectBaseDirectory/bin/Release" -Recurse -Filter "*.dll" | Where-Object { $_.FullName -like "*\publish\*.dll" } | ForEach-Object {
-          echo "Found $($_.FullName)"
-          mv $_.FullName ${{ inputs.artifact_directory }}
-        }
-        dir ${{ inputs.artifact_directory }}
-        $zipPath = "${{ inputs.artifact_directory }}/${{ inputs.file_name }}.zip"
-        Compress-Archive -Path "${{ inputs.artifact_directory }}/*" -DestinationPath $zipPath
-        echo "Created zip $zipPath"
-        dir ${{ inputs.artifact_directory }}
-
-        # Remove original files after successful compression
-        Get-ChildItem -Path ${{ inputs.artifact_directory }} | Where-Object { $_.Extension -ne ".zip" } | Remove-Item -Recurse -Force
-        dir ${{ inputs.artifact_directory }}
+      run: dotnet publish ${{ inputs.project_path }} --no-build ${{ inputs.dotnet_publish_args }} -o ${{ inputs.artifact_directory }}
       shell: pwsh
 
     - name: Set cache_key
       id: set_key
       run: |
-        echo "cache_key=publish-msix-${{ github.sha }}" >> $Env:GITHUB_OUTPUT
+        echo "cache_key=publish-exe-${{ github.sha }}" >> $Env:GITHUB_OUTPUT
       shell: pwsh
 
     - name: Cache releases
