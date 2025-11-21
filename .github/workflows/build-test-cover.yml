@@ -93,7 +93,7 @@ jobs:
         if: inputs.format_csharpier
         run: |
           dotnet tool restore
-          dotnet csharpier --check .
+          dotnet csharpier check .
 
       # Test all projects inside the ./test directory.
       # Coverage goes to ./results/uuid/...
