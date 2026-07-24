@@ -19,11 +19,11 @@ inputs:
     required: false
     default: ''
   artifact_directory:
-    description: "A path to a directory which is not used by the repository and can be action"
+    description: "The directory in which the packaged application archive is created"
     required: false
     default: './publish-exe'
   file_name:
-    description: "The resulting file name"
+    description: "The resulting archive name without the .zip extension"
     required: false
     default: 'App'
 outputs:
@@ -46,9 +46,13 @@ runs:
         ${{ inputs.dotnet_build_args }}
       shell: pwsh
 
-    # Create the app package by building and packaging the Windows Application Packaging project
-    - name: Publish project
-      run: dotnet publish ${{ inputs.project_path }} ${{ inputs.dotnet_publish_args }} -o ${{ inputs.artifact_directory }}
+    - name: Publish and package project
+      run: |
+        $publishDirectory = Join-Path '${{ inputs.artifact_directory }}' 'output'
+        $zipPath = Join-Path '${{ inputs.artifact_directory }}' '${{ inputs.file_name }}.zip'
+        dotnet publish ${{ inputs.project_path }} ${{ inputs.dotnet_publish_args }} -o $publishDirectory
+        Compress-Archive -Path (Join-Path $publishDirectory '*') -DestinationPath $zipPath -Force
+        Remove-Item -Path $publishDirectory -Recurse -Force
       shell: pwsh
 
     - name: Set cache_key
