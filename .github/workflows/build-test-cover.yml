@@ -104,7 +104,7 @@ jobs:
           IFS=';' read -r -a patterns <<< "${{ inputs.test_projects }}"
           for pattern in "${patterns[@]}"; do
             for d in $pattern; do
-              dotnet test "$d" --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory ./results --logger "trx;logfilename=${d%.*}.trx";
+              dotnet test --project "$d" --configuration Release --no-build --results-directory ./results/test --report-xunit-trx --coverlet --coverlet-output-format cobertura;
             done
           done
 
@@ -113,7 +113,7 @@ jobs:
         run: |
           mkdir ${{ inputs.reports_path }}
           mkdir -p './results/test'
-          mv ./results/test/**/*.trx ${{ inputs.reports_path }}
+          mv ./results/test/*.trx ${{ inputs.reports_path }}
 
       - name: Test Report
         uses: dorny/test-reporter@v1
