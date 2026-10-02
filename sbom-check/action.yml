@@ -1,0 +1,67 @@
+name: Check SBOM licenses
+description: Merge additional SBOM information and fail when licenses are not permitted
+inputs:
+  generated_sbom_path:
+    description: Path to the generated CycloneDX SBOM
+    required: true
+  additional_sbom_info_path:
+    description: Path to the CycloneDX file containing additional SBOM information to merge
+    required: true
+  output_sbom_path:
+    description: Path where the merged SBOM is written
+    required: false
+    default: artifacts/sbom/bom.json
+  license_report_path:
+    description: Path where the license check report is written
+    required: false
+    default: artifacts/sbom/license-report.json
+outputs:
+  sbom_path:
+    description: Path to the merged SBOM
+    value: ${{ inputs.output_sbom_path }}
+  license_report_path:
+    description: Path to the license check report
+    value: ${{ inputs.license_report_path }}
+
+runs:
+  using: composite
+  steps:
+    # Augment merge can add unmatched packages; reject stale declarations first.
+    - name: Check reviewed package versions
+      shell: bash
+      env:
+        GENERATED_SBOM_PATH: ${{ inputs.generated_sbom_path }}
+        ADDITIONAL_SBOM_INFO_PATH: ${{ inputs.additional_sbom_info_path }}
+        OUTPUT_SBOM_PATH: ${{ inputs.output_sbom_path }}
+        LICENSE_REPORT_PATH: ${{ inputs.license_report_path }}
+      run: |
+        mkdir -p "$(dirname "$OUTPUT_SBOM_PATH")" "$(dirname "$LICENSE_REPORT_PATH")"
+        jq -e --slurpfile bom "$GENERATED_SBOM_PATH" \
+          '([.components[].purl] - [$bom[0].components[].purl]) | length == 0' \
+          "$ADDITIONAL_SBOM_INFO_PATH"
+
+    - name: Enrich reviewed licenses with sbomasm
+      uses: docker://ghcr.io/interlynk-io/sbomasm:v2.1.1
+      with:
+        args: >-
+          assemble --augmentMerge --primary "${{ inputs.generated_sbom_path }}"
+          --merge-mode overwrite --outputSpecVersion 1.7 --doc-license none
+          "${{ inputs.additional_sbom_info_path }}" -o "${{ inputs.output_sbom_path }}"
+
+    # The action installs the CLI, but its args input cannot pass --strict.
+    - name: Install sbom-tools and report licenses
+      uses: sbom-tool/sbom-tools-action@3f297788f2356079ef088d5c357d48d626b59e91 # v1.3.0
+      with:
+        command: license-check
+        args: ${{ inputs.output_sbom_path }}
+        verify-provenance: warn
+
+    - name: Require allowed and declared licenses
+      shell: bash
+      env:
+        OUTPUT_SBOM_PATH: ${{ inputs.output_sbom_path }}
+        LICENSE_REPORT_PATH: ${{ inputs.license_report_path }}
+      run: |
+        sbom-tools license-check "$OUTPUT_SBOM_PATH" --strict --check-propagation --output json | tee "$LICENSE_REPORT_PATH"
+        # Strict mode does not reject undeclared licenses on its own.
+        jq -e '.undeclared_count == 0' "$LICENSE_REPORT_PATH"
