@@ -61,7 +61,9 @@ runs:
       env:
         OUTPUT_SBOM_PATH: ${{ inputs.output_sbom_path }}
         LICENSE_REPORT_PATH: ${{ inputs.license_report_path }}
+        LICENSE_POLICY_PATH: ${{ github.action_path }}/license-policy.json
       run: |
-        sbom-tools license-check "$OUTPUT_SBOM_PATH" --strict --check-propagation --output json | tee "$LICENSE_REPORT_PATH"
+        set -euo pipefail
+        sbom-tools license-check "$OUTPUT_SBOM_PATH" --policy "$LICENSE_POLICY_PATH" --strict --check-propagation --output json | tee "$LICENSE_REPORT_PATH"
         # Strict mode does not reject undeclared licenses on its own.
         jq -e '.undeclared_count == 0' "$LICENSE_REPORT_PATH"
