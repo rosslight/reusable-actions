@@ -15,6 +15,9 @@ inputs:
     description: Path where the license check report is written
     required: false
     default: artifacts/sbom/license-report.json
+  license_policy_path:
+    description: Optional path to a custom license policy; defaults to the policy bundled with this action
+    required: false
 outputs:
   sbom_path:
     description: Path to the merged SBOM
@@ -61,7 +64,9 @@ runs:
       env:
         OUTPUT_SBOM_PATH: ${{ inputs.output_sbom_path }}
         LICENSE_REPORT_PATH: ${{ inputs.license_report_path }}
+        LICENSE_POLICY_PATH: ${{ inputs.license_policy_path || format('{0}/license-policy.json', github.action_path) }}
       run: |
-        sbom-tools license-check "$OUTPUT_SBOM_PATH" --strict --check-propagation --output json | tee "$LICENSE_REPORT_PATH"
+        set -euo pipefail
+        sbom-tools license-check "$OUTPUT_SBOM_PATH" --policy "$LICENSE_POLICY_PATH" --strict --check-propagation --output json | tee "$LICENSE_REPORT_PATH"
         # Strict mode does not reject undeclared licenses on its own.
         jq -e '.undeclared_count == 0' "$LICENSE_REPORT_PATH"
